@@ -1381,7 +1381,7 @@ document.getElementById('resForm').addEventListener('submit', async function(e) 
     if (RESERVATION_SHEET_URL === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') throw new Error('not configured');
     await fetch(RESERVATION_SHEET_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' });
     status.className = 'f-status ok';
-    status.textContent = '✓ Request received! We\'ll confirm by phone or email soon.';
+    status.textContent = '✓ Reservation received! A confirmation has been sent to your email.';
     form.reset(); btn.textContent = 'Sent ✓';
   } catch(err) {
     if (err.message === 'not configured') {
@@ -1389,7 +1389,7 @@ document.getElementById('resForm').addEventListener('submit', async function(e) 
       status.textContent = 'Reservations sheet not connected yet — please call (831) 289-3014.';
     } else {
       status.className = 'f-status ok';
-      status.textContent = '✓ Request received! We\'ll confirm by phone or email soon.';
+      status.textContent = '✓ Reservation received! A confirmation has been sent to your email.';
       form.reset(); btn.textContent = 'Sent ✓';
     }
   }

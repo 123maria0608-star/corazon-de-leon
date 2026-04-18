@@ -216,12 +216,15 @@
         </div>
       </div>
 
+      <label>Email * <span style="font-family:'Playfair Display',serif;letter-spacing:0;text-transform:none;font-size:0.78rem;color:var(--text-dim);font-style:italic;">(confirmation sent here)</span></label>
+      <input type="email" name="email" placeholder="your@email.com" required>
+
       <button type="submit">Request Reservation →</button>
       <div class="status" id="status"></div>
     </form>
 
     <div class="footer-note">
-      We'll confirm by phone shortly.<br>
+      A confirmation will be sent to your email.<br>
       Questions? Call <a href="tel:+18312893014">(831) 289-3014</a>
     </div>
   </div>
@@ -247,7 +250,7 @@
       try {
         await fetch(SHEET_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' });
         status.className = 'status ok';
-        status.textContent = '✓ Request received! We\'ll confirm your reservation by phone soon.';
+        status.textContent = '✓ Reservation received! A confirmation has been sent to your email.';
         form.reset();
         btn.textContent = 'Sent ✓';
       } catch(err) {
