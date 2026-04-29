@@ -1022,28 +1022,13 @@
         </p>
       </div>
       <div class="event-form-box">
-        <div class="event-form-title">Post an Event</div>
-        <div class="event-form-sub">Owner use — submit a new event to be posted on the site.</div>
-        <form id="eventForm" action="https://formspree.io/f/mzdyrkad" method="POST">
-          <input type="hidden" name="_subject" value="New Event — Corazón De León">
-          <label class="f-label">Event Name</label>
-          <input class="f-input" type="text" name="event_name" placeholder="e.g. Mariachi Night" required>
-          <label class="f-label">Date</label>
-          <input class="f-input" type="date" name="event_date" required>
-          <label class="f-label">Time</label>
-          <input class="f-input" type="text" name="event_time" placeholder="e.g. 7:00 PM – 10:00 PM">
-          <label class="f-label">Type</label>
-          <select class="f-select" name="event_type">
-            <option>Mariachi Night</option>
-            <option>Live Singer</option>
-            <option>Special Menu</option>
-            <option>Holiday Event</option>
-            <option>Other</option>
-          </select>
-          <label class="f-label" style="margin-top:0.25rem;">Details</label>
-          <textarea class="f-textarea" name="event_details" placeholder="Any additional details..."></textarea>
-          <button type="submit" class="btn-form">Submit Event →</button>
-          <div class="f-status" id="evtStatus"></div>
+        <div class="event-form-title">Owner Login</div>
+        <div class="event-form-sub">Enter the password to manage events — add, delete, or update flyers.</div>
+        <form id="adminLoginForm">
+          <label class="f-label">Password</label>
+          <input class="f-input" type="password" id="adminPw" placeholder="••••••••" required>
+          <button type="submit" class="btn-form" id="adminLoginBtn">Open Admin Panel →</button>
+          <div class="f-status" id="adminStatus"></div>
         </form>
       </div>
     </div>
@@ -1491,7 +1476,56 @@ function bindForm(formId, statusId) {
     }
   });
 }
-bindForm('eventForm', 'evtStatus');
+/* ── ADMIN PASSWORD GATE ── decrypts PAT and forwards to admin.html ── */
+(function() {
+  var form = document.getElementById('adminLoginForm');
+  if (!form) return;
+  function b64ToBytes(b64) {
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+  async function decryptPat(password, secret) {
+    var pwKey = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(password),
+      { name: 'PBKDF2' }, false, ['deriveKey']
+    );
+    var key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: b64ToBytes(secret.salt), iterations: secret.iter || 200000, hash: 'SHA-256' },
+      pwKey,
+      { name: 'AES-GCM', length: 256 },
+      false, ['decrypt']
+    );
+    var pt = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: b64ToBytes(secret.iv) },
+      key,
+      b64ToBytes(secret.ct)
+    );
+    return new TextDecoder().decode(pt);
+  }
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var pw = document.getElementById('adminPw').value;
+    var btn = document.getElementById('adminLoginBtn');
+    var status = document.getElementById('adminStatus');
+    status.className = 'f-status'; status.textContent = '';
+    btn.disabled = true; btn.textContent = 'Unlocking…';
+    try {
+      var r = await fetch('admin/secret.json?t=' + Date.now());
+      if (!r.ok) throw new Error('Admin not configured.');
+      var secret = await r.json();
+      var pat = await decryptPat(pw, secret);
+      if (!pat || pat.length < 10) throw new Error('Wrong password.');
+      sessionStorage.setItem('cdl_token', pat);
+      window.location.href = 'admin.html';
+    } catch (err) {
+      status.className = 'f-status err';
+      status.textContent = 'Wrong password.';
+      btn.disabled = false; btn.textContent = 'Open Admin Panel →';
+    }
+  });
+})();
 bindForm('photoForm', 'photoStatus');
 bindForm('removeForm', 'removeStatus');
 
