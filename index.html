@@ -1355,7 +1355,7 @@
       </div>
     </div>
     <div class="footer-bar">
-      <p>© 2025 &nbsp;·&nbsp; Corazón De León &nbsp;·&nbsp; Ben Lomond, California &nbsp;·&nbsp; All Rights Reserved</p>
+      <p>© 2025 &nbsp;·&nbsp; Corazón De León &nbsp;·&nbsp; Ben Lomond, California &nbsp;·&nbsp; All Rights Reserved &nbsp;·&nbsp; <a href="admin.html" style="color:inherit;text-decoration:none;opacity:0.6;">Admin</a></p>
     </div>
   </div>
 </footer>
@@ -1444,24 +1444,28 @@ function showPsTab(id, btn) {
 
 /* EVENTS LIST
    ─────────────────────────────────────────────────────────────
-   OWNER: Edit this array to post upcoming events on the site.
-   Each entry: { day: "26", month: "APR", title: "...", desc: "..." }
-   Set to [] to show "no events" message.
+   Events are loaded from events.json — edit via /admin.html
    ─────────────────────────────────────────────────────────────  */
-var EVENTS = [
-  { day: "05", month: "MAY", title: "Cinco de Mayo Celebration", desc: "Celebrate the food, beer, wine, cocktails, entertainment and joy of Cinco de Mayo! Live music from Mariachi Jalisiense and a performance by Danza Azteca. Tuesday, May 5 · 4:00 PM – 9:00 PM", img: "images/cinco-de-mayo.png" },
-  { day: "10", month: "MAY", title: "Mother's Day Buffet", desc: "Celebrate Mother's Day with a special buffet at Corazón de León! Join us for a delicious spread in honor of all the amazing moms. Sunday, May 10 · Details to come."},
-];
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
 (function() {
   var el = document.getElementById('events-list');
-  if (!EVENTS.length) {
-    el.innerHTML = '<p class="no-events">No upcoming events — check back soon or follow us on Instagram!</p>';
-    return;
-  }
-  el.innerHTML = EVENTS.map(function(e) {
-    var imgHtml = e.img ? '<img src="'+e.img+'" alt="'+e.title+'" style="width:100%;max-width:340px;border-radius:4px;margin-top:1rem;display:block;">' : '';
-    return '<div class="event-card" style="flex-direction:column;align-items:flex-start;"><div style="display:flex;gap:1.5rem;align-items:flex-start;"><div class="event-date"><div class="event-day">'+e.day+'</div><div class="event-month">'+e.month+'</div></div><div class="event-info"><h4>'+e.title+'</h4><p>'+e.desc+'</p></div></div>'+imgHtml+'</div>';
-  }).join('');
+  fetch('events.json?t=' + Date.now())
+    .then(function(r) { return r.ok ? r.json() : []; })
+    .catch(function() { return []; })
+    .then(function(EVENTS) {
+      if (!EVENTS.length) {
+        el.innerHTML = '<p class="no-events">No upcoming events — check back soon or follow us on Instagram!</p>';
+        return;
+      }
+      el.innerHTML = EVENTS.map(function(e) {
+        var imgHtml = e.img ? '<img src="'+escHtml(e.img)+'" alt="'+escHtml(e.title)+'" style="width:100%;max-width:340px;border-radius:4px;margin-top:1rem;display:block;">' : '';
+        return '<div class="event-card" style="flex-direction:column;align-items:flex-start;"><div style="display:flex;gap:1.5rem;align-items:flex-start;"><div class="event-date"><div class="event-day">'+escHtml(e.day)+'</div><div class="event-month">'+escHtml(e.month)+'</div></div><div class="event-info"><h4>'+escHtml(e.title)+'</h4><p>'+escHtml(e.desc)+'</p></div></div>'+imgHtml+'</div>';
+      }).join('');
+    });
 })();
 
 /* FORMSPREE AJAX */
